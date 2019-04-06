@@ -7,7 +7,7 @@ import (
 )
 
 func TestGetAddress(t *testing.T) {
-	parser := parse.Parser{}
+	parser := parse.ParserLink{}
 	result := parser.GetAddressOfAction("Frontier")
-	assertions.ShouldEqual(result, "https://quote.rbc.ru/ticker/177752")
+	assertions.ShouldEqual(result, "")
 }

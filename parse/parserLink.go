@@ -6,13 +6,14 @@ import (
 	"log"
 )
 
-type Parser struct {
+type ParserLink struct {
 	result string
 }
 
-const catalogAddress = "https://quote.rbc.ru/catalog/"
+const catalogAddress = ""
 
-func (parse Parser) GetAddressOfAction(name string) string {
+//Get Link address of specified action
+func (parse ParserLink) GetAddressOfAction(name string) string {
 	c := colly.NewCollector()
 
 	c.OnRequest(func(r *colly.Request) {
@@ -27,9 +28,33 @@ func (parse Parser) GetAddressOfAction(name string) string {
 		fmt.Println("Visited", r.Request.URL)
 	})
 
+	c.OnHTML("div[class=catalog__search__body]", func(element *colly.HTMLElement) {
+		element.DOM.Nodes[0].FirstChild.NextSibling.Attr[5].Val = name
+		element.DOM.Nodes[0].FirstChild.NextSibling.Attr[1].Val = name
+		element.DOM.Nodes[0].FirstChild.NextSibling.Data = name
+
+		cl := colly.NewCollector()
+
+		cl.OnHTML("span[class=catalog__line]", func(e *colly.HTMLElement) {
+			a := e.DOM.Nodes[0].FirstChild.NextSibling.Attr[0].Val //link
+			title := e.DOM.Nodes[0].FirstChild.NextSibling.LastChild.PrevSibling.Attr[1].Val
+			//fmt.Printf("%s,%s", title, name)
+			if title == name {
+				parse.result = a
+				fmt.Println("Result", a)
+			}
+		})
+
+		err:= cl.Visit(catalogAddress)
+		if err != nil {
+			print(err)
+		}
+	})
+
 	c.OnHTML("span[class=catalog__line]", func(e *colly.HTMLElement) {
 		a := e.DOM.Nodes[0].FirstChild.NextSibling.Attr[0].Val //link
 		title := e.DOM.Nodes[0].FirstChild.NextSibling.LastChild.PrevSibling.Attr[1].Val
+		//fmt.Printf("%s,%s", title, name)
 		if title == name {
 			parse.result = a
 			fmt.Println("Result", a)
